@@ -3,10 +3,9 @@ import tkinter as tk
 from PIL import Image, ImageTk
 import time
 
-# MLX90614 I2C settings
 MLX90614_I2C_ADDR = 0x5A
-MLX90614_TOBJ1 = 0x07  # Object temperature register
-MLX90614_TA = 0x06     # Ambient temperature register
+MLX90614_TOBJ1 = 0x07  
+MLX90614_TA = 0x06     
 
 
 class MLX90614:
@@ -26,7 +25,6 @@ class MLX90614:
         return self.read_temp(MLX90614_TA)
 
 
-# ✅ CALIBRATION OFFSET
 CALIBRATION_OFFSET = 4
 
 
@@ -42,7 +40,6 @@ def get_temperature():
         return None
 
 
-# ✅ Fullscreen Temperature Check Screen
 class TemperatureScreen(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
@@ -52,7 +49,6 @@ class TemperatureScreen(tk.Toplevel):
         self.screen_w = self.winfo_screenwidth()
         self.screen_h = self.winfo_screenheight()
 
-        # Canvas background
         self.canvas = tk.Canvas(self, width=self.screen_w, height=self.screen_h, highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
         try:
@@ -62,7 +58,6 @@ class TemperatureScreen(tk.Toplevel):
         except Exception:
             self.canvas.configure(bg="#87b3e6")
 
-        # Title
         self.canvas.create_text(
             self.screen_w // 2, 80,
             text="Temperature Check",
@@ -70,7 +65,6 @@ class TemperatureScreen(tk.Toplevel):
             fill="#000000"
         )
 
-        # Wrist image
         try:
             wrist_img = Image.open("Wrist.png").resize((300, 220))
             self.wrist_photo = ImageTk.PhotoImage(wrist_img)
@@ -83,7 +77,6 @@ class TemperatureScreen(tk.Toplevel):
                 fill="#000000"
             )
 
-        # Instructions
         self.instr_text = self.canvas.create_text(
             self.screen_w // 2, self.screen_h // 2 + 80,
             text="Please place your wrist near the scanner...",
@@ -91,7 +84,6 @@ class TemperatureScreen(tk.Toplevel):
             fill="#000000"
         )
 
-        # Result
         self.result_text = self.canvas.create_text(
             self.screen_w // 2, self.screen_h // 2 + 140,
             text="Waiting to scan...",
@@ -99,7 +91,6 @@ class TemperatureScreen(tk.Toplevel):
             fill="#000000"
         )
 
-        # Initialize scanning
         self.readings = []
         self.stable_threshold = 5
         self.after(2000, self.start_scanning)
@@ -134,7 +125,6 @@ class TemperatureScreen(tk.Toplevel):
         self.canvas.itemconfig(self.instr_text, text="Scan complete ✅")
 
 
-# Test window
 if __name__ == "__main__":
     root = tk.Tk()
     root.withdraw()

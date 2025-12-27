@@ -1,4 +1,3 @@
-# attendance_db.py
 import mysql.connector
 from mysql.connector import Error
 from datetime import datetime, date, time as dtime, timedelta
@@ -27,7 +26,6 @@ def log_attendance(employee_id, fullname, temperature, mode):
         now = datetime.now()
         now_time = now.strftime("%H:%M:%S")
 
-        # 1️⃣ Check if record exists today
         cursor.execute("""
             SELECT id, employee_id, time_in, time_out, status 
             FROM attendance 
@@ -35,7 +33,6 @@ def log_attendance(employee_id, fullname, temperature, mode):
         """, (employee_id, today))
         record = cursor.fetchone()
 
-        # 2️⃣ Handle Time-In
         if mode == "Time-In":
             if record:
                 print("✅ Already Time-In today, skipping insert.")
@@ -49,7 +46,6 @@ def log_attendance(employee_id, fullname, temperature, mode):
                 """, (today, employee_id, fullname, temperature, status, now_time))
                 print(f"✅ Time-In logged successfully ({status}).")
 
-        # 3️⃣ Handle Time-Out
         elif mode == "Time-Out":
             if record:
                 record_id, emp_id, time_in_val, _, status_val = record
@@ -81,8 +77,6 @@ def log_attendance(employee_id, fullname, temperature, mode):
         print("❌ Database error while logging attendance:", e)
 
 
-
-# --- ✅ Check if employee already has Time-In today ---
 def has_time_in_today(employee_id):
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
@@ -101,7 +95,6 @@ def has_time_in_today(employee_id):
         return False
 
 
-# --- ✅ Check if employee already has Time-Out today ---
 def has_time_out_today(employee_id):
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
@@ -150,10 +143,8 @@ def mark_absent_employees():
             print("⏳ Too early.")
             return
 
-        # ✅ Ensure rows exist FIRST
         ensure_daily_attendance_rows(today)
 
-        # ✅ Mark absent where no time-in
         cursor.execute("""
             UPDATE attendance
             SET status = 'Absent'

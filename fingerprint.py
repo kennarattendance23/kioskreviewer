@@ -3,9 +3,6 @@ import mysql.connector
 from mysql.connector import Error
 import time
 
-# ==============================
-# DATABASE CONFIG
-# ==============================
 DB_CONFIG = {
     "host": "kennardb-mysql-moonlitguardian23-9f54.e.aivencloud.com",
     "port": 12769,
@@ -15,9 +12,6 @@ DB_CONFIG = {
     "ssl_ca": "ca.pem"
 }
 
-# ==============================
-# DB HELPER
-# ==============================
 def get_employee_fingerprint_id(employee_id):
     """Fetch fingerprint_id from database for a given employee_id"""
     try:
@@ -28,16 +22,13 @@ def get_employee_fingerprint_id(employee_id):
         cursor.close()
         conn.close()
         if result:
-            return int(result[0])   # fingerprint_id stored as string in DB → cast to int
+            return int(result[0])   
         return None
     except Error as e:
         print("Database error:", e)
         return None
 
 
-# ==============================
-# FINGERPRINT VERIFICATION
-# ==============================
 def wait_for_fingerprint(employee_id):
     """
     Waits for a fingerprint scan and verifies if it matches the stored fingerprint_id
@@ -55,31 +46,26 @@ def wait_for_fingerprint(employee_id):
 
     print("Waiting for finger...")
 
-    # Loop until a finger is read
     while f.readImage() == False:
         pass
 
-    # Convert image to characteristics and store in charbuffer 1
     f.convertImage(0x01)
 
-    # Search for fingerprint in library
     result = f.searchTemplate()
-    positionNumber = result[0]  # template index
-    accuracyScore = result[1]   # match accuracy
+    positionNumber = result[0]  
+    accuracyScore = result[1]   
 
     if positionNumber == -1:
         print("No match found")
         return False
 
     print(f"Found template at position {positionNumber} (Score: {accuracyScore})")
-    # Get expected fingerprint_id from DB
     db_fingerprint_id = get_employee_fingerprint_id(employee_id)
 
     if db_fingerprint_id is None:
         print("No fingerprint_id found in database for employee", employee_id)
         return False
 
-    # Compare AS608 matched position with DB fingerprint_id
     if positionNumber == db_fingerprint_id:
         print("Fingerprint verified successfully for employee", employee_id)
         return True

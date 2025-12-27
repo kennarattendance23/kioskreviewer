@@ -9,23 +9,18 @@ class AttendanceInfoScreen(tk.Toplevel):
         super().__init__(master)
         self.title("Attendance Information")
 
-        # --- Enable True Fullscreen (Kiosk Mode) ---
         self.attributes("-fullscreen", True)
-        self.config(cursor="none")  # hide mouse cursor
-        self.bind("<Escape>", lambda e: self.destroy())  # press Esc to exit for debugging
+        self.config(cursor="none")  
+        self.bind("<Escape>", lambda e: self.destroy())  
 
-        # --- Force the window to fully initialize before drawing ---
         self.update_idletasks()
 
-        # --- Use actual screen resolution ---
         screen_w = self.winfo_screenwidth()
         screen_h = self.winfo_screenheight()
 
-        # --- Create Canvas (main layout area) ---
         self.canvas = tk.Canvas(self, width=screen_w, height=screen_h, highlightthickness=0, bd=0)
         self.canvas.pack(fill="both", expand=True)
 
-        # --- Load Background Image ---
         try:
             bg_img = Image.open("Time-In.png").resize((screen_w, screen_h))
             self.bg_photo = ImageTk.PhotoImage(bg_img)
@@ -34,13 +29,11 @@ class AttendanceInfoScreen(tk.Toplevel):
             self.canvas.configure(bg="#84AEE3")
             print("⚠️ Background image failed to load:", e)
 
-        # --- Title ---
         self.canvas.create_text(screen_w / 2, 60,
                                 text="Attendance Information",
                                 font=("Arial", 20, "bold"),
                                 fill="black")
 
-        # --- Rounded Rectangle Helper ---
         def round_rect(canvas, x1, y1, x2, y2, r=18, **kwargs):
             points = [
                 x1 + r, y1,
@@ -58,7 +51,6 @@ class AttendanceInfoScreen(tk.Toplevel):
             ]
             return canvas.create_polygon(points, smooth=True, **kwargs)
 
-        # --- Left Info Boxes ---
         def create_field(label, value, y_pos):
             self.canvas.create_text(150, y_pos - 15, text=label,
                                     font=("Arial", 11), fill="black", anchor="w")
@@ -72,7 +64,6 @@ class AttendanceInfoScreen(tk.Toplevel):
         create_field("Temperature", f"{temperature}°C", 300)
         create_field(attendance_type, attendance_time, 360)
 
-        # --- Employee Photo (Right Side) ---
         try:
             img = Image.open(image_path).resize((220, 260))
             self.photo_image = ImageTk.PhotoImage(img)
@@ -82,10 +73,8 @@ class AttendanceInfoScreen(tk.Toplevel):
                                     font=("Arial", 12), fill="red")
             print("⚠️ Photo not found:", e)
 
-        # --- Capsule "Done" Button Below Photo ---
         self.create_done_button(740, 470)
 
-        # --- Force redraw after fullscreen ---
         self.after(200, self.redraw_all)
 
     def redraw_all(self):
@@ -95,13 +84,11 @@ class AttendanceInfoScreen(tk.Toplevel):
         self.focus_force()
 
     def create_done_button(self, x, y):
-        # --- Capsule Shadow ---
         self.canvas.create_oval(
             x - 80, y - 20, x + 80, y + 20,
             fill="#366fa8", outline=""
         )
 
-        # --- Capsule Button (main) ---
         done_btn = tk.Button(
             self,
             text="Done",
@@ -119,7 +106,6 @@ class AttendanceInfoScreen(tk.Toplevel):
         self.canvas.create_window(x, y, window=done_btn, width=160, height=45)
 
 
-# --- Example Usage ---
 if __name__ == "__main__":
     root = tk.Tk()
     root.withdraw()

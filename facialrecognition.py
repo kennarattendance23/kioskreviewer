@@ -8,11 +8,9 @@ import json
 import os
 from picamera2 import Picamera2
 from libcamera import Transform
-from attendance_db import has_time_in_today, has_time_out_today  # ✅ Added both helpers
+from attendance_db import has_time_in_today, has_time_out_today  
 
-# ==============================
-# DATABASE CONFIG
-# ==============================
+
 DB_CONFIG = {
     "host": "kennardb-mysql-moonlitguardian23-9f54.e.aivencloud.com",
     "port": 12769,
@@ -22,7 +20,6 @@ DB_CONFIG = {
     "ssl_ca": "ca.pem"
 }
 
-# --- Load employees from DB ---
 def load_employees():
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor(dictionary=True)
@@ -37,17 +34,14 @@ def load_employees():
         os.makedirs(photos_dir)
 
     for emp in employees:
-        # Load embedding
         try:
             emp["embedding"] = np.array(json.loads(emp["face_embedding"]), dtype=np.float32)
         except Exception:
             emp["embedding"] = None
 
-        # Handle image (BLOB or path)
         photo_data = emp.get("image")
 
         if isinstance(photo_data, bytes):
-            # Save blob as temporary file
             img_filename = f"{emp['employee_id']}.jpg"
             img_path = os.path.join(photos_dir, img_filename)
             with open(img_path, "wb") as f:
@@ -55,7 +49,6 @@ def load_employees():
             emp["image"] = img_path
 
         elif isinstance(photo_data, str):
-            # old path type
             if not os.path.isabs(photo_data):
                 photo_data = os.path.join(photos_dir, photo_data)
             if not os.path.exists(photo_data):
@@ -263,7 +256,6 @@ def start_facial_recognition(mode="Time-In"):
                 if match:
                     recognized_emp = match
 
-                    # ✅ Time-In rule
                     if mode == "Time-In" and has_time_in_today(recognized_emp["employee_id"]):
                         already_frame = get_background("Time-In.png", screen_w, screen_h)
                         already_frame = draw_notification(
@@ -279,7 +271,6 @@ def start_facial_recognition(mode="Time-In"):
                         cv2.destroyAllWindows()
                         return "ALREADY_TIMEIN"
 
-                    # ✅ Time-Out rule: must have Time-In first
                     if mode == "Time-Out" and not has_time_in_today(recognized_emp["employee_id"]):
                         no_in_frame = get_background("Time-In.png", screen_w, screen_h)
                         no_in_frame = draw_notification(
@@ -295,7 +286,6 @@ def start_facial_recognition(mode="Time-In"):
                         cv2.destroyAllWindows()
                         return "NO_TIMEIN"
 
-                    # ✅ Already Time-Out rule
                     if mode == "Time-Out" and has_time_out_today(recognized_emp["employee_id"]):
                         already_out_frame = get_background("Time-In.png", screen_w, screen_h)
                         already_out_frame = draw_notification(
@@ -311,7 +301,6 @@ def start_facial_recognition(mode="Time-In"):
                         cv2.destroyAllWindows()
                         return "ALREADY_TIMEOUT"
 
-                    # ✅ Proceed to Employee Info
                     success = True
                     release_camera()
                     cv2.destroyAllWindows()

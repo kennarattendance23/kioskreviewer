@@ -1,11 +1,3 @@
-# facial_fingerprint_registration.py
-# FULLY UPDATED VERSION
-# UI: PRESERVED (Enter ID, Face UI, Fingerprint UI, Done Screen)
-# LOGIC FIXED: Fingerprint duplicate detection + proper enrollment
-# SCAN BAR: Two-part green bar without moving effect
-# DUPLICATE: Resumes scanning automatically
-# DONE SCREEN: Background + auto-close after 3s
-
 import os
 import cv2
 import json
@@ -17,9 +9,6 @@ from pyfingerprint.pyfingerprint import PyFingerprint
 import face_recognition
 import mysql.connector
 
-# ---------------------------
-# Config & helpers
-# ---------------------------
 SAVE_DIR = "registered_faces"
 os.makedirs(SAVE_DIR, exist_ok=True)
 
@@ -58,9 +47,6 @@ def get_face_embedding(face_img):
     enc = face_recognition.face_encodings(rgb)
     return enc[0].tolist() if enc else None
 
-# ---------------------------
-# Main Registration Window
-# ---------------------------
 class FacialFingerprintRegistration(tk.Toplevel):
 
     def __init__(self, master=None):
@@ -73,21 +59,15 @@ class FacialFingerprintRegistration(tk.Toplevel):
         self.picam = None
         self.face_embedding = None
 
-        # ----------------------
-        # Activity timeout setup
-        # ----------------------
         self.last_activity = self._current_time()
         self.bind_all("<Any-KeyPress>", self.reset_activity_timer)
         self.bind_all("<Any-Button>", self.reset_activity_timer)
         self.bind_all("<Motion>", self.reset_activity_timer)
-        self.idle_seconds = 20  # 20 seconds timeout
+        self.idle_seconds = 20  
         self.check_idle_timeout()
 
         self.build_enter_id_screen()
 
-    # -----------------------
-    # Activity timeout methods
-    # -----------------------
     def _current_time(self):
         import time
         return time.time()
@@ -102,27 +82,19 @@ class FacialFingerprintRegistration(tk.Toplevel):
             return
         self.after(1000, self.check_idle_timeout)
 
-    # -----------------------
-    # Utilities
-    # -----------------------
     def clear(self):
         for w in self.winfo_children():
             w.destroy()
 
-    # -----------------------
-    # Phase 1: Enter ID
-    # -----------------------
     def build_enter_id_screen(self):
         self.clear()
 
-        # Background
         bg = Image.open("Time-In.png").resize((1030, 650))
         self.bg_photo = ImageTk.PhotoImage(bg)
         bg_label = tk.Label(self, image=self.bg_photo)
         bg_label.place(relwidth=1, relheight=1)
         bg_label.lower()
 
-        # Entry card
         card = tk.Frame(self, bg="#80adf0")
         card.place(relx=0.3, rely=0.5, anchor="center")
 
@@ -155,7 +127,6 @@ class FacialFingerprintRegistration(tk.Toplevel):
             command=self.cancel_to_idle
         ).pack(side="left", padx=10)
 
-        # KEYPAD
         keypad = tk.Frame(self, bg="#80adf0")
         keypad.place(relx=0.75, rely=0.5, anchor="center")
 
@@ -197,9 +168,6 @@ class FacialFingerprintRegistration(tk.Toplevel):
         self.employee_id = eid
         self.start_face_registration()
 
-    # -----------------------
-    # Phase 2: Face Registration
-    # -----------------------
     def start_face_registration(self):
         self.clear()
 
@@ -240,13 +208,9 @@ class FacialFingerprintRegistration(tk.Toplevel):
         self.picam.stop(); self.picam.close(); self.picam = None
         self.start_fingerprint_registration()
 
-    # -----------------------
-    # Phase 3: Fingerprint Registration (Two-part bar)
-    # -----------------------
     def start_fingerprint_registration(self):
         self.clear()
 
-        # Background
         bg = Image.open("Time-In.png").resize((1030, 650))
         self.bg_photo = ImageTk.PhotoImage(bg)
         bg_label = tk.Label(self, image=self.bg_photo)
@@ -261,26 +225,24 @@ class FacialFingerprintRegistration(tk.Toplevel):
         tk.Label(
             container,
             text="Please place your finger to the sensor for registration",
-            font=("Arial", 22, "bold"),  # Updated font
+            font=("Arial", 22, "bold"),  
             bg="#80adf0"
         ).pack(pady=(0, 10))
 
         self.fp_status = tk.Label(
             container,
             text="Waiting for finger",
-            font=("Arial", 22, "bold"),  # Updated font
+            font=("Arial", 22, "bold"),  
             fg="#2b4cff",
             bg="#80adf0"
         )
         self.fp_status.pack(pady=(0, 20))
 
-        # Fingerprint image larger
-        fp_img = Image.open("fingerprint.png").resize((200, 240))  # bigger image
+        fp_img = Image.open("fingerprint.png").resize((200, 240))  
         self.fp_photo = ImageTk.PhotoImage(fp_img)
         tk.Label(container, image=self.fp_photo, bg="#80adf0").pack(pady=(0,20))
 
-        # Two-part scan bar larger
-        self.scan_bar_bg = tk.Frame(container, bg="black", width=400, height=20)  # bigger bar
+        self.scan_bar_bg = tk.Frame(container, bg="black", width=400, height=20)  
         self.scan_bar_bg.pack(pady=20)
 
         self.scan_bar_part1 = tk.Frame(self.scan_bar_bg, bg="green", width=0, height=20)
@@ -292,7 +254,7 @@ class FacialFingerprintRegistration(tk.Toplevel):
         tk.Button(
             container,
             text="CANCEL",
-            font=("Arial", 22, "bold"),  # updated font
+            font=("Arial", 22, "bold"),  
             width=14,
             bg="#dbe7f6",
             relief="flat",
@@ -302,9 +264,6 @@ class FacialFingerprintRegistration(tk.Toplevel):
         self.after(500, self.scan_fingerprint)
 
 
-    # -----------------------
-    # Helper: Smooth fill bar
-    # -----------------------
     def fill_scan_bar(self, bar, target_width, callback=None):
         current_width = bar.winfo_width()
         if current_width < target_width:
@@ -314,9 +273,6 @@ class FacialFingerprintRegistration(tk.Toplevel):
             if callback:
                 callback()
 
-    # -----------------------
-    # Fingerprint scan logic
-    # -----------------------
     def scan_fingerprint(self):
         self.fp_status.config(text="Scanning...")
         fp = PyFingerprint('/dev/serial0', 57600, 0xFFFFFFFF, 0x00000000)
@@ -330,21 +286,17 @@ class FacialFingerprintRegistration(tk.Toplevel):
                 return
             fp.convertImage(0x01)
 
-            # DUPLICATE CHECK
             for i in range(fp.getTemplateCount()):
                 fp.loadTemplate(i, 0x02)
                 score = fp.compareCharacteristics()
                 if score > 40:
-                    # Reset scan bars
                     self.scan_bar_part1.config(width=0)
                     self.scan_bar_part2.config(width=0)
                     self.fp_status.config(text="Waiting for finger")
-                    # Show message and resume scanning after 2s
                     self.after(100, lambda: messagebox.showerror("Duplicate", "Fingerprint already registered"))
                     self.after(2000, step1)
                     return
 
-            # Fill first part
             self.scan_bar_part1.config(width=200)
             self.fp_status.config(text="Remove finger...")
             self.after(1500, step2)
@@ -358,26 +310,20 @@ class FacialFingerprintRegistration(tk.Toplevel):
             fp.createTemplate()
             pos = fp.storeTemplate()
 
-            # Fill second part and save
             self.fill_scan_bar(self.scan_bar_part2, 200, callback=lambda: self.show_done_screen())
             save_registration_to_db(self.employee_id, self.face_embedding, pos)
 
         step1()
 
-    # -----------------------
-    # Done Screen
-    # -----------------------
     def show_done_screen(self):
         self.clear()
 
-        # Background
         bg = Image.open("Time-In.png").resize((1030, 650))
         self.bg_photo = ImageTk.PhotoImage(bg)
         bg_label = tk.Label(self, image=self.bg_photo)
         bg_label.place(relwidth=1, relheight=1)
         bg_label.lower()
 
-        # Success message
         tk.Label(
             self,
             text="REGISTRATION COMPLETE",
@@ -386,10 +332,8 @@ class FacialFingerprintRegistration(tk.Toplevel):
             bg="#80adf0"
         ).place(relx=0.5, rely=0.45, anchor="center")
 
-        # Automatically close after 3 seconds
         self.after(3000, self.safe_close)
 
-    # -----------------------
     def cancel_to_idle(self):
         try:
             if self.picam:
@@ -401,9 +345,6 @@ class FacialFingerprintRegistration(tk.Toplevel):
     def safe_close(self):
         self.cancel_to_idle()
 
-# ---------------------------
-# Run
-# ---------------------------
 if __name__ == "__main__":
     root = tk.Tk(); root.withdraw()
     FacialFingerprintRegistration(root).grab_set()

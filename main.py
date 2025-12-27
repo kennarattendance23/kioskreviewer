@@ -13,7 +13,6 @@ from tkinter import messagebox
 os.chdir("/home/kennarautoshop/Desktop/kennarautoshop_attendancesystem/attendance")
 
 
-# --- Fullscreen & Kiosk Helper Function ---
 def make_fullscreen(window):
     window.attributes("-fullscreen", True)
     window.config(cursor="none")
@@ -32,7 +31,6 @@ def exit_kiosk(window):
         pass
     window.destroy()
 
-# --- Fade transition helpers ---
 def fade_out(window, step=0.05, delay=20):
     try:
         alpha = window.attributes("-alpha")
@@ -53,7 +51,6 @@ def fade_in(window, step=0.05, delay=20):
     except:
         pass
 
-# --- Rounded Button ---
 class RoundedButton(tk.Canvas):
     def __init__(self, parent, text, command=None,
                  bg="#cfecf7", hover_bg="#b5d8e6", active_bg="#9fc6d8",
@@ -116,7 +113,6 @@ class RoundedButton(tk.Canvas):
         if self.command:
             self.command()
 
-# --- Employee Info Screen ---
 class EmployeeInfoScreen(tk.Toplevel):
     def __init__(self, master, emp_id="", full_name="", image_path="", mode="Time-In"):
         super().__init__(master)
@@ -128,7 +124,6 @@ class EmployeeInfoScreen(tk.Toplevel):
         screen_h = self.winfo_screenheight()
         self.geometry(f"{screen_w}x{screen_h}+0+0")
 
-        # --- Background image ---
         self.canvas = tk.Canvas(self, width=screen_w, height=screen_h, highlightthickness=0)
         self.canvas.place(x=0, y=0, relwidth=1, relheight=1)
         try:
@@ -142,18 +137,15 @@ class EmployeeInfoScreen(tk.Toplevel):
         left_x = screen_w * 0.35
         center_y = screen_h / 2 - 40
 
-        # --- Title ---
         self.canvas.create_text(screen_w / 2, center_y - 200,
                                 text="Check the Information",
                                 font=("Arial", 24, "bold"), fill="#1b1b1b", anchor="center")
 
-        # --- Labels ---
         self.canvas.create_text(left_x - 90, center_y - 70, text="Employee ID",
                                 font=("Arial", 11), fill="#1b1b1b", anchor="w")
         self.canvas.create_text(left_x - 90, center_y + 10, text="Full Name",
                                 font=("Arial", 11), fill="#1b1b1b", anchor="w")
 
-        # --- Capsule Box ---
         def draw_capsule_box(canvas, x, y, width, height, r=25, text_value=""):
             x1, y1 = x - width / 2, y - height / 2
             x2, y2 = x + width / 2, y + height / 2
@@ -170,7 +162,6 @@ class EmployeeInfoScreen(tk.Toplevel):
         draw_capsule_box(self.canvas, left_x, center_y - 40, 320, 40, text_value=emp_id)
         draw_capsule_box(self.canvas, left_x, center_y + 40, 320, 40, text_value=full_name)
 
-        # --- Photo ---
         photo_x = screen_w * 0.7
         photo_y = center_y
         try:
@@ -182,14 +173,12 @@ class EmployeeInfoScreen(tk.Toplevel):
                                     font=("Arial", 12), fill="#666")
             print("⚠️ Photo not found:", e)
 
-        # --- Status message ---
         self.status_text_id = self.canvas.create_text(
             left_x, center_y + 120,
             text="Please scan your fingerprint to proceed.",
             font=("Arial", 11, "italic"), fill="#2e2e2e", anchor="center"
         )
 
-        # --- Bottom clock and date ---
         bottom_frame = tk.Frame(self, bg="#6689bd", height=40)
         bottom_frame.pack(side="bottom", fill="x")
         self.clock_label = tk.Label(bottom_frame, text="", font=("Arial", 10), bg="#6689bd", fg="white")
@@ -250,10 +239,9 @@ class EmployeeInfoScreen(tk.Toplevel):
             self.image_path,
             self.mode
         ),
-        self.destroy()  # ✅ properly close the Employee Info Screen
+        self.destroy()  
     ))
 
-# --- Temperature + Attendance ---
 class TemperatureScreenWithAttendance(TemperatureScreen):
     def __init__(self, master, emp_id, full_name, image_path, mode):
         super().__init__(master)
@@ -280,7 +268,6 @@ class TemperatureScreenWithAttendance(TemperatureScreen):
         )
         self.destroy()
 
-# --- Idle Screen ---
 class IdleScreen(tk.Tk):
     def __init__(self, video_path="workshop.mp4"):
         super().__init__()
@@ -316,7 +303,6 @@ class IdleScreen(tk.Tk):
         self.btn_in.pack(pady=20)
         self.btn_out = RoundedButton(content_frame, text="Time - Out", command=self.time_out)
         self.btn_out.pack(pady=10)
-        # --- REGISTER BUTTON ---
         self.btn_register = RoundedButton(content_frame, text="Register", command=self.open_registration)
         self.btn_register.pack(pady=10)
 
@@ -325,7 +311,6 @@ class IdleScreen(tk.Tk):
         self.update_clock()
         self.update_video()
 
-    # --- UPDATE CLOCK/VIDEO ---
     def update_clock(self):
         now = time.strftime("%I:%M %p").lstrip("0")
         today = time.strftime("%A, %B %d, %Y")
@@ -347,7 +332,6 @@ class IdleScreen(tk.Tk):
         self.after(33, self.update_video)
 
 
-        # --- FIXED: OPEN REGISTRATION ---
     def open_registration(self):
         try:
             from facial_fingerprint_registration import FacialFingerprintRegistration
@@ -361,7 +345,6 @@ class IdleScreen(tk.Tk):
 
 
 
-    # --- FACIAL RECOGNITION METHODS ---
     def run_facial_recognition(self, mode):
         if getattr(self, "is_processing", False):
             print("⚠️ Recognition already in progress...")
@@ -379,14 +362,12 @@ class IdleScreen(tk.Tk):
         These functions are optional — if present in modules we call them.
         """
         print("Attempting camera recovery...")
-        # try to call facialrecognition.cleanup or release_camera if provided
         try:
             if hasattr(facialrecognition, "release_camera"):
                 facialrecognition.release_camera()
                 print("Called facialrecognition.release_camera()")
         except Exception as e:
             print("facialrecognition.release_camera() failed:", e)
-        # try fingerprint cleanup (if it holds serial resource)
         try:
             if hasattr(fingerprint, "release_sensor"):
                 fingerprint.release_sensor()
@@ -399,17 +380,13 @@ class IdleScreen(tk.Tk):
             try:
                 result = facialrecognition.start_facial_recognition(mode)
             except RuntimeError as re:
-                # handle Picamera2 "Device or resource busy" / init errors
                 msg = str(re)
                 print("Camera init error:", msg)
-                # Try one recovery attempt
                 self.attempt_camera_recovery()
-                # small short delay to allow cleanup
                 time.sleep(0.6)
                 try:
                     result = facialrecognition.start_facial_recognition(mode)
                 except Exception as re2:
-                    # still failed — inform admin with helpful message
                     print("Second attempt failed:", re2)
                     messagebox.showerror("Camera Error",
                                          "Camera initialization failed (device busy). "
@@ -434,9 +411,7 @@ class IdleScreen(tk.Tk):
                 print(f"{mode} failed: {result.get('message', 'Unknown error')}")
         except Exception as e:
             print("Unexpected error during facial recognition:", e)
-            # If Picamera2 raised a different error during init
             if "Camera _init_ sequence did not complete" in str(e) or "Failed to acquire camera" in str(e):
-                # Attempt recovery once
                 self.attempt_camera_recovery()
                 messagebox.showerror("Camera Error", "Camera failed to initialize. Please close other camera windows and try again.")
             else:
@@ -457,7 +432,6 @@ class IdleScreen(tk.Tk):
         print("Starting facial recognition for Time-Out...")
         self.run_facial_recognition("Time-Out")
 
-# --- Run App ---
 if __name__ == "__main__":
     app = IdleScreen("montage.MP4")
     app.mainloop()
